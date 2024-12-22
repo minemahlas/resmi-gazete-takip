@@ -14,18 +14,29 @@ KEYWORDS = [
     "Yayın Hizmetleri Usul ve Esasları",
     "Resmi İlan ve Reklam",
     "İş Kanunu",
-    "Radyo Televizyon Üst Kurulu",
+    "Radyo ve Televizyon Üst Kurulu",
     "Ticaret Kanunu",
 ]
 
-def check_resmi_gazete():
-    response = requests.get(URL)
-    soup = BeautifulSoup(response.text, "html.parser")
-    content = soup.text
+# Proxy ve headers
+PROXY = {"http": "http://proxy_address:port", "https": "http://proxy_address:port"}  # Gerekirse proxy bilgilerini girin
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+}
 
-    # Anahtar kelimeleri kontrol et
-    matches = [keyword for keyword in KEYWORDS if keyword in content]
-    return matches
+def check_resmi_gazete():
+    try:
+        response = requests.get(URL, headers=HEADERS, proxies=PROXY, timeout=10)
+        response.raise_for_status()  # HTTP hata kodları için kontrol
+        soup = BeautifulSoup(response.text, "html.parser")
+        content = soup.text
+
+        # Anahtar kelimeleri kontrol et
+        matches = [keyword for keyword in KEYWORDS if keyword in content]
+        return matches
+    except requests.exceptions.RequestException as e:
+        print(f"Bağlantı hatası: {e}")
+        return []
 
 def send_email(matches):
     sender_email = os.getenv("EMAIL_USER")
