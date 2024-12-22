@@ -4,6 +4,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
+import re
 
 # Resmi Gazete URL'si
 URL = "https://www.resmigazete.gov.tr/"
@@ -13,38 +14,46 @@ KEYWORDS = [
     "Basın İş Kanunu",
     "Yayın Hizmetleri Usul ve Esasları",
     "Resmi İlan ve Reklam",
-    "Temiz Enerji ve Enerji"
+    "Temiz Enerji ve Enerji",
     "İş Kanunu",
     "Radyo ve Televizyon Üst Kurulu",
     "Ticaret Kanunu",
 ]
 
-# Proxy ve headers (gerekirse düzenleyin)
-PROXY = {"http": "http://proxy_address:port", "https": "http://proxy_address:port"}  # Proxy kullanmıyorsanız bu kısmı boş bırakabilirsiniz
+# Proxy ve headers (isteğe bağlı düzenleyin)
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
 }
 
+def extract_sentences_with_keywords(content, keywords):
+    """İçeriği cümlelere ayırır ve anahtar kelimeleri içeren cümleleri döndürür."""
+    sentences = re.split(r'(?<=[.!?]) +', content)  # Nokta, ünlem ve soru işaretinden sonra bölerek cümlelere ayırır
+    matching_sentences = [
+        sentence for sentence in sentences
+        if any(keyword.lower() in sentence.lower() for keyword in keywords)
+    ]
+    return matching_sentences
+
 def check_resmi_gazete():
+    """Resmi Gazete içeriğini kontrol eder ve eşleşen cümleleri döndürür."""
     try:
         print("Resmi Gazete'den içerik çekiliyor...")
-        response = requests.get(URL, headers=HEADERS, proxies=PROXY, timeout=10)
-        response.raise_for_status()  # HTTP hata kodları için kontrol
+        response = requests.get(URL, headers=HEADERS, timeout=10)
+        response.raise_for_status()  # HTTP hata kontrolü
         soup = BeautifulSoup(response.text, "html.parser")
-        content = soup.text
+        content = soup.get_text()  # HTML içeriğini düz metin olarak alır
+        print("İçerik başarıyla çekildi.")
 
-        print("Çekilen içerik (ilk 500 karakter):")
-        print(content[:500])  # Çekilen içeriğin ilk 500 karakterini yazdırır
-
-        # Anahtar kelimeleri kontrol et
-        matches = [keyword for keyword in KEYWORDS if keyword.lower() in content.lower()]  # Büyük/küçük harf duyarsız kontrol
-        print("Bulunan anahtar kelimeler:", matches)
-        return matches
+        # Anahtar kelimeleri içeren cümleleri bul
+        matching_sentences = extract_sentences_with_keywords(content, KEYWORDS)
+        print(f"Bulunan cümleler: {matching_sentences}")
+        return matching_sentences
     except requests.exceptions.RequestException as e:
         print(f"Bağlantı hatası: {e}")
         return []
 
-def send_email(matches):
+def send_email(sentences):
+    """Eşleşen cümleleri e-posta olarak gönderir."""
     sender_email = os.getenv("EMAIL_USER")
     sender_password = os.getenv("EMAIL_PASS")
     receiver_email = os.getenv("RECEIVER_EMAIL")
@@ -53,9 +62,9 @@ def send_email(matches):
         print("E-posta bilgileri eksik! Lütfen ortam değişkenlerini kontrol edin.")
         return
 
-    if matches:
-        subject = "Resmi Gazete'de Yeni Güncelleme"
-        body = f"Resmi Gazete'de şu anahtar kelimeler bulundu: {', '.join(matches)}"
+    if sentences:
+        subject = "Resmi Gazete Güncellemesi"
+        body = "Resmi Gazete'de anahtar kelimeler içeren şu cümleler bulundu:\n\n" + "\n".join(sentences)
 
         msg = MIMEMultipart()
         msg['From'] = sender_email
@@ -67,7 +76,6 @@ def send_email(matches):
             print("SMTP sunucusuna bağlanılıyor...")
             server = smtplib.SMTP("smtp.gmail.com", 587)
             server.starttls()
-            print("Sunucuya giriş yapılıyor...")
             server.login(sender_email, sender_password)
             print("E-posta gönderiliyor...")
             server.sendmail(sender_email, receiver_email, msg.as_string())
@@ -76,11 +84,8 @@ def send_email(matches):
         except Exception as e:
             print(f"E-posta gönderiminde hata: {e}")
     else:
-        print("Gönderilecek anahtar kelime bulunamadığı için e-posta gönderilmedi.")
+        print("Gönderilecek cümle bulunamadığı için e-posta gönderilmedi.")
 
 if __name__ == "__main__":
-    matches = check_resmi_gazete()
-    if matches:
-        send_email(matches)
-    else:
-        print("Anahtar kelime bulunamadı.")
+    matching_sentences = check_resmi_gazete()
+    send_email(matching_sentences)
