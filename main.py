@@ -13,8 +13,9 @@ KEYWORDS = [
     "Basın İş Kanunu",
     "Yayın Hizmetleri Usul ve Esasları",
     "Resmi İlan ve Reklam",
+    "Temiz Enerji ve Enerji"
     "İş Kanunu",
-    "Radyo Televizyon Üst Kurulu",
+    "Radyo ve Televizyon Üst Kurulu",
     "Ticaret Kanunu",
 ]
 
