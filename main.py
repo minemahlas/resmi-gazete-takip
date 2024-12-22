@@ -52,7 +52,7 @@ def send_email(matches):
         except Exception as e:
             print(f"E-posta gönderiminde hata: {e}")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     matches = check_resmi_gazete()
     if matches:
         send_email(matches)
