@@ -3,7 +3,7 @@ name: Resmi Gazete Takip
 on:
   workflow_dispatch:  # Manuel tetikleme
   schedule:
-    - cron: "0 23 * * *"  # Türkiye saatiyle gece 02:00'de (UTC+3)
+    - cron: "5 15 * * *"  # Türkiye saatiyle gece 18:05'te (UTC+3)
 
 jobs:
   check-resmi-gazete:
