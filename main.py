@@ -24,7 +24,7 @@ def check_resmi_gazete():
                 print("All attempts failed. Exiting.")
                 raise e
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     try:
         content = check_resmi_gazete()
         print("First 100 characters of the page:")
