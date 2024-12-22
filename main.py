@@ -1,60 +1,33 @@
 import requests
-from bs4 import BeautifulSoup
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import os
+import time
 
-# Resmi Gazete URL'si
-URL = "https://www.resmigazete.gov.tr/"
-
-# Anahtar kelimeler
-KEYWORDS = [
-    "Basın İş Kanunu",
-    "Yayın Hizmetleri Usul ve Esasları",
-    "Resmi İlan ve Reklam",
-    "İş Kanunu",
-    "Radyo Televizyon Üst Kurulu",
-    "Ticaret Kanunu",
-]
+# Resmî Gazete URL
+URL = "https://www.resmigazete.gov.tr"
 
 def check_resmi_gazete():
-    response = requests.get(URL)
-    soup = BeautifulSoup(response.text, "html.parser")
-    content = soup.text
-
-    # Anahtar kelimeleri kontrol et
-    matches = [keyword for keyword in KEYWORDS if keyword in content]
-    return matches
-
-def send_email(matches):
-    sender_email = os.getenv("EMAIL_USER")
-    sender_password = os.getenv("EMAIL_PASS")
-    receiver_email = os.getenv("RECEIVER_EMAIL")
-
-    if matches:
-        subject = "Resmi Gazete'de Yeni Güncelleme"
-        body = f"Resmi Gazete'de şu anahtar kelimeler bulundu: {', '.join(matches)}"
-
-        msg = MIMEMultipart()
-        msg['From'] = sender_email
-        msg['To'] = receiver_email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(body, "plain"))
-
+    """
+    Resmî Gazete sayfasına bağlanır ve içeriği kontrol eder.
+    """
+    for attempt in range(3):  # 3 kez dene
         try:
-            server = smtplib.SMTP("smtp.gmail.com", 587)
-            server.starttls()
-            server.login(sender_email, sender_password)
-            server.sendmail(sender_email, receiver_email, msg.as_string())
-            server.quit()
-            print("E-posta başarıyla gönderildi.")
-        except Exception as e:
-            print(f"E-posta gönderiminde hata: {e}")
+            print(f"Attempt {attempt + 1}: Connecting to {URL}...")
+            response = requests.get(URL, timeout=20)  # 20 saniye timeout
+            response.raise_for_status()  # HTTP hatalarını yakalar
+            print("Connection successful!")
+            return response.text  # İçeriği döndür
+        except requests.exceptions.RequestException as e:
+            print(f"Error: {e}")
+            if attempt < 2:  # Son deneme değilse bekle
+                print("Retrying in 5 seconds...")
+                time.sleep(5)
+            else:
+                print("All attempts failed. Exiting.")
+                raise e
 
-if __name__ == "__main__":
-    matches = check_resmi_gazete()
-    if matches:
-        send_email(matches)
-    else:
-        print("Anahtar kelime bulunamadı.")
+if _name_ == "_main_":
+    try:
+        content = check_resmi_gazete()
+        print("First 100 characters of the page:")
+        print(content[:100])  # Sayfanın ilk 100 karakterini yazdır
+    except Exception as e:
+        print(f"Failed to fetch the page: {e}")
