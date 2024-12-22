@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
-import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import smtplib
 import os
 import re
 
@@ -20,7 +20,7 @@ KEYWORDS = [
     "Ticaret Kanunu",
 ]
 
-# Proxy ve headers (isteğe bağlı düzenleyin)
+# Headers (isteğe bağlı düzenleyin)
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
 }
@@ -43,7 +43,7 @@ def check_resmi_gazete():
         soup = BeautifulSoup(response.text, "html.parser")
         content = soup.get_text()  # HTML içeriğini düz metin olarak alır
         print("İçerik başarıyla çekildi.")
-
+        
         # Anahtar kelimeleri içeren cümleleri bul
         matching_sentences = extract_sentences_with_keywords(content, KEYWORDS)
         print(f"Bulunan cümleler: {matching_sentences}")
@@ -54,9 +54,9 @@ def check_resmi_gazete():
 
 def send_email(sentences):
     """Eşleşen cümleleri e-posta olarak gönderir."""
-    sender_email = os.getenv("EMAIL_USER")
-    sender_password = os.getenv("EMAIL_PASS")
-    receiver_email = os.getenv("RECEIVER_EMAIL")
+    sender_email = os.getenv("EMAIL_USER")  # Gönderici e-posta adresi
+    sender_password = os.getenv("EMAIL_PASS")  # Gönderici e-posta şifresi
+    receiver_email = os.getenv("RECEIVER_EMAIL")  # Alıcı e-posta adresi
 
     if not sender_email or not sender_password or not receiver_email:
         print("E-posta bilgileri eksik! Lütfen ortam değişkenlerini kontrol edin.")
@@ -66,6 +66,7 @@ def send_email(sentences):
         subject = "Resmi Gazete Güncellemesi"
         body = "Resmi Gazete'de anahtar kelimeler içeren şu cümleler bulundu:\n\n" + "\n".join(sentences)
 
+        # E-posta mesajını oluştur
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = receiver_email
@@ -76,6 +77,7 @@ def send_email(sentences):
             print("SMTP sunucusuna bağlanılıyor...")
             server = smtplib.SMTP("smtp.gmail.com", 587)
             server.starttls()
+            print("Sunucuya giriş yapılıyor...")
             server.login(sender_email, sender_password)
             print("E-posta gönderiliyor...")
             server.sendmail(sender_email, receiver_email, msg.as_string())
@@ -89,3 +91,4 @@ def send_email(sentences):
 if __name__ == "__main__":
     matching_sentences = check_resmi_gazete()
     send_email(matching_sentences)
+    
