@@ -12,6 +12,7 @@ URL = "https://www.resmigazete.gov.tr/"
 KEYWORDS = [
     "Basın İş Kanunu",
     "Yayın Hizmetleri Usul ve Esasları",
+    "Temiz Enerji ve Enerji",
     "Resmi İlan ve Reklam",
     "İş Kanunu",
     "Radyo ve Televizyon Üst Kurulu",
