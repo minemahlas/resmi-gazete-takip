@@ -2,7 +2,7 @@ name: Resmi Gazete Takip ve Bildirim
 
 on:
   schedule:
-    - cron: "0 16 * * *"  # Her gün saat 19:00 (UTC ile yerel saat farkına dikkat edin)
+    - cron: "15 19 * * *"  # Her gün saat 22:15 (Türkiye saati, UTC ile 3 saat fark vardır)
   workflow_dispatch: # Manuel tetikleme
 
 jobs:
