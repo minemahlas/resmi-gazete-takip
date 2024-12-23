@@ -91,16 +91,6 @@ def send_email(sentences):
     else:
         print("Gönderilecek cümle bulunamadığı için e-posta gönderilmedi.")
 
-def run_daily_task():
-    """Her gün Türkiye saatiyle 22:00'de görevi çalıştırır."""
-    while True:
-        now = datetime.now()
-        if now.hour == 22 and now.minute == 0:
-            print("Görev çalıştırılıyor...")
-            matching_sentences = check_resmi_gazete()
-            send_email(matching_sentences)
-            time.sleep(60)  # Bir dakika bekle, aynı görevin tekrar çalışmasını önle
-        time.sleep(30)  # 30 saniyede bir kontrol et
-
 if __name__ == "__main__":
-    run_daily_task()
+    matching_sentences = check_resmi_gazete()
+    send_email(matching_sentences)
