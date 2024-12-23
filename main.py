@@ -16,6 +16,7 @@ KEYWORDS = [
     "Resmi İlan ve Reklam",
     "Temiz Enerji ve Enerji",
     "İş Kanunu",
+    "Anayasa Mahkemesi"
     "Radyo ve Televizyon Üst Kurulu",
     "Ticaret Kanunu",
 ]
