@@ -16,7 +16,7 @@ KEYWORDS = [
     "Resmi İlan ve Reklam",
     "Temiz Enerji ve Enerji",
     "İş Kanunu",
-    "Anayasa Mahkemesi"
+    "Anayasa Mahkemesi",
     "Radyo ve Televizyon Üst Kurulu",
     "Ticaret Kanunu",
 ]
@@ -76,7 +76,7 @@ def send_email(sentences):
 
         try:
             print("SMTP sunucusuna bağlanılıyor...")
-            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server = smtplib.SMTP("smtp.office365.com", 587)
             server.starttls()
             print("Sunucuya giriş yapılıyor...")
             server.login(sender_email, sender_password)
@@ -92,4 +92,3 @@ def send_email(sentences):
 if __name__ == "__main__":
     matching_sentences = check_resmi_gazete()
     send_email(matching_sentences)
-    
