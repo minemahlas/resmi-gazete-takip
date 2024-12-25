@@ -1,35 +1,31 @@
-name: Resmi Gazete Takip ve Bildirim
+name: Resmi Gazete Bot
 
 on:
   schedule:
-    - cron: "32 19 * * *"  # Her gün saat 22:32 (Türkiye saati, UTC ile 3 saat fark vardır)
-  workflow_dispatch: # Manuel tetikleme
+    - cron: "0 2 * * *"  # Her gün saat 02:00'da çalışır
+  workflow_dispatch:  # Manuel olarak çalıştırma seçeneği
 
 jobs:
-  check-resmi-gazete:
+  run-bot:
     runs-on: ubuntu-latest
 
     steps:
-      # Depoyu klonla
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Depoyu klonla
+      uses: actions/checkout@v3
 
-      # Python ortamını kur
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
+    - name: Python'u kur
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
 
-      # Gerekli kütüphaneleri yükle
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests beautifulsoup4
+    - name: Gereksinimleri yükle
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      # Python betiğini çalıştır
-      - name: Run script
-        env:
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}      # Gönderici e-posta
-          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}      # Şifre
-          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }} # Alıcı e-posta
-        run: python main.py
+    - name: Botu çalıştır
+      env:
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        CHAT_ID: ${{ secrets.CHAT_ID }}
+      run: |
+        python main.py
