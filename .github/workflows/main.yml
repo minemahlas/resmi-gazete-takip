@@ -1,8 +1,6 @@
 name: Resmi Gazete Bot
 
 on:
-  schedule:
-    - cron: "0 2 * * *"  # Her gün saat 02:00'da çalışır
   workflow_dispatch:  # Manuel olarak çalıştırma seçeneği
 
 jobs:
@@ -25,7 +23,4 @@ jobs:
 
     - name: Botu çalıştır
       env:
-        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        CHAT_ID: ${{ secrets.CHAT_ID }}
-      run: |
-        python main.py
+        BOT_TOKEN: ${{ s
