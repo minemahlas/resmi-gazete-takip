@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import re
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
-from telegram import ParseMode
+from telegram.constants import ParseMode  # Burada değişiklik yapıldı
 
 # Resmi Gazete URL'si
 URL = "https://www.resmigazete.gov.tr/"
@@ -58,7 +58,7 @@ def send_telegram_message(update: Update, context: CallbackContext, sentences):
 
     message = "📄 <b>Resmi Gazete Güncellemesi</b>\n\n"
     message += "\n".join([f"- {sentence}" for sentence in sentences])
-    update.message.reply_text(message, parse_mode=ParseMode.HTML)
+    update.message.reply_text(message, parse_mode=ParseMode.HTML)  # Burada da değişiklik yapıldı
 
 def start(update: Update, context: CallbackContext):
     """Bot başladığında çalışacak fonksiyon."""
