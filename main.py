@@ -1,12 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import smtplib
-import os
 import re
-from datetime import datetime
-import time
 
 # Resmi Gazete URL'si
 URL = "https://www.resmigazete.gov.tr/"
@@ -28,6 +22,11 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
 }
 
+# Telegram bot token ve chat ID
+BOT_TOKEN = "7816018448:AAGQI_YZFwlIVH_8rT-yCFFuPPaKBIAhskc"
+CHAT_ID = "YOUR_CHAT_ID"  # Kendi Telegram chat ID'nizi buraya ekleyin
+
+
 def extract_sentences_with_keywords(content, keywords):
     """İçeriği cümlelere ayırır ve anahtar kelimeleri içeren cümleleri döndürür."""
     sentences = re.split(r'(?<=[.!?]) +', content)  # Nokta, ünlem ve soru işaretinden sonra bölerek cümlelere ayırır
@@ -36,6 +35,7 @@ def extract_sentences_with_keywords(content, keywords):
         if any(keyword.lower() in sentence.lower() for keyword in keywords)
     ]
     return matching_sentences
+
 
 def check_resmi_gazete():
     """Resmi Gazete içeriğini kontrol eder ve eşleşen cümleleri döndürür."""
@@ -55,42 +55,31 @@ def check_resmi_gazete():
         print(f"Bağlantı hatası: {e}")
         return []
 
-def send_email(sentences):
-    """Eşleşen cümleleri e-posta olarak gönderir."""
-    sender_email = os.getenv("EMAIL_USER")  # Gönderici e-posta adresi
-    sender_password = os.getenv("EMAIL_PASS")  # Gönderici e-posta şifresi
-    receiver_email = os.getenv("RECEIVER_EMAIL")  # Alıcı e-posta adresi
 
-    if not sender_email or not sender_password or not receiver_email:
-        print("E-posta bilgileri eksik! Lütfen ortam değişkenlerini kontrol edin.")
+def send_telegram_message(sentences):
+    """Eşleşen cümleleri Telegram üzerinden gönderir."""
+    if not sentences:
+        print("Gönderilecek cümle bulunamadı.")
         return
 
-    if sentences:
-        subject = "Resmi Gazete Güncellemesi"
-        body = "Resmi Gazete'de anahtar kelimeler içeren şu cümleler bulundu:\n\n" + "\n".join(sentences)
+    message = "📄 <b>Resmi Gazete Güncellemesi</b>\n\n"
+    message += "\n".join([f"- {sentence}" for sentence in sentences])
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    data = {
+        "chat_id": CHAT_ID,
+        "text": message,
+        "parse_mode": "HTML"
+    }
+    
+    try:
+        print("Telegram mesajı gönderiliyor...")
+        response = requests.post(url, data=data)
+        response.raise_for_status()
+        print("Telegram mesajı başarıyla gönderildi.")
+    except requests.exceptions.RequestException as e:
+        print(f"Telegram mesajı gönderiminde hata: {e}")
 
-        # E-posta mesajını oluştur
-        msg = MIMEMultipart()
-        msg['From'] = sender_email
-        msg['To'] = receiver_email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        try:
-            print("SMTP sunucusuna bağlanılıyor...")
-            server = smtplib.SMTP("smtp.office365.com", 587)
-            server.starttls()
-            print("Sunucuya giriş yapılıyor...")
-            server.login(sender_email, sender_password)
-            print("E-posta gönderiliyor...")
-            server.sendmail(sender_email, receiver_email, msg.as_string())
-            server.quit()
-            print("E-posta başarıyla gönderildi.")
-        except Exception as e:
-            print(f"E-posta gönderiminde hata: {e}")
-    else:
-        print("Gönderilecek cümle bulunamadığı için e-posta gönderilmedi.")
 
 if __name__ == "__main__":
     matching_sentences = check_resmi_gazete()
-    send_email(matching_sentences)
+    send_telegram_message(matching_sentences)
