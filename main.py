@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.constants import ParseMode  # Burada değişiklik yapıldı
 
 # Resmi Gazete URL'si
@@ -50,7 +50,7 @@ def check_resmi_gazete():
         print(f"Bağlantı hatası: {e}")
         return []
 
-def send_telegram_message(update: Update, context: CallbackContext, sentences):
+def send_telegram_message(update: Update, context: ContextTypes.DEFAULT_TYPE, sentences):
     """Eşleşen cümleleri Telegram üzerinden gönderir."""
     if not sentences:
         update.message.reply_text("📄 <b>Resmi Gazete Güncellemesi</b>\n\nHiçbir eşleşen cümle bulunamadı.")
@@ -60,11 +60,11 @@ def send_telegram_message(update: Update, context: CallbackContext, sentences):
     message += "\n".join([f"- {sentence}" for sentence in sentences])
     update.message.reply_text(message, parse_mode=ParseMode.HTML)  # Burada da değişiklik yapıldı
 
-def start(update: Update, context: CallbackContext):
+def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Bot başladığında çalışacak fonksiyon."""
     update.message.reply_text("Merhaba! Resmi Gazete'yi taramak için /scan komutunu kullanabilirsiniz.")
 
-def scan(update: Update, context: CallbackContext):
+def scan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/scan komutunu işleyen fonksiyon."""
     update.message.reply_text("Resmi Gazete taraması başlatılıyor... Lütfen bekleyin.")
     matching_sentences = check_resmi_gazete()
@@ -72,15 +72,14 @@ def scan(update: Update, context: CallbackContext):
 
 def main():
     """Telegram botunun çalıştığı ana fonksiyon."""
-    updater = Updater(BOT_TOKEN)
+    application = Application.builder().token(BOT_TOKEN).build()  # Updater yerine Application kullanıldı
 
     # Komutlar
-    updater.dispatcher.add_handler(CommandHandler("start", start))  # /start komutu
-    updater.dispatcher.add_handler(CommandHandler("scan", scan))    # /scan komutu
+    application.add_handler(CommandHandler("start", start))  # /start komutu
+    application.add_handler(CommandHandler("scan", scan))    # /scan komutu
 
     # Botu çalıştır
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 if __name__ == "__main__":
     main()
