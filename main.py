@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import re
+import os
 
 # Resmi Gazete URL'si
 URL = "https://www.resmigazete.gov.tr/"
@@ -17,14 +18,9 @@ KEYWORDS = [
     "Ticaret Kanunu",
 ]
 
-# Headers (isteğe bağlı düzenleyin)
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
-}
-
-# Telegram bot token ve chat ID
-BOT_TOKEN = "7816018448:AAGQI_YZFwlIVH_8rT-yCFFuPPaKBIAhskc"
-CHAT_ID = "YOUR_CHAT_ID"  # Kendi Telegram chat ID'nizi buraya ekleyin
+# Telegram bot token ve chat ID (GitHub Secrets üzerinden alınacak)
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 
 
 def extract_sentences_with_keywords(content, keywords):
@@ -41,7 +37,7 @@ def check_resmi_gazete():
     """Resmi Gazete içeriğini kontrol eder ve eşleşen cümleleri döndürür."""
     try:
         print("Resmi Gazete'den içerik çekiliyor...")
-        response = requests.get(URL, headers=HEADERS, timeout=10)
+        response = requests.get(URL, timeout=10)
         response.raise_for_status()  # HTTP hata kontrolü
         soup = BeautifulSoup(response.text, "html.parser")
         content = soup.get_text()  # HTML içeriğini düz metin olarak alır
@@ -49,7 +45,6 @@ def check_resmi_gazete():
         
         # Anahtar kelimeleri içeren cümleleri bul
         matching_sentences = extract_sentences_with_keywords(content, KEYWORDS)
-        print(f"Bulunan cümleler: {matching_sentences}")
         return matching_sentences
     except requests.exceptions.RequestException as e:
         print(f"Bağlantı hatası: {e}")
